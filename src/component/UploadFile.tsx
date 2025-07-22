@@ -86,6 +86,7 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
               Title
             </label>
             <input
+              required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               type="text"
@@ -99,6 +100,7 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
               Description
             </label>
             <textarea
+              required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}

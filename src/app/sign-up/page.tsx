@@ -1,7 +1,9 @@
 "use client";
 
+import Button from "@/component/Button";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -10,6 +12,8 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [dob, setDob] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password != confirmPassword) {
@@ -17,6 +21,7 @@ export default function SignUpPage() {
       return;
     }
     try {
+      setIsLoading(true);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
         {
@@ -32,6 +37,7 @@ export default function SignUpPage() {
 
       if (!res.ok) {
         toast.error(data.message || "Something went wrong");
+        setIsLoading(false);
         return;
       }
 
@@ -39,10 +45,13 @@ export default function SignUpPage() {
         data.message ||
           "Registration successful! Please check your email inbox (or spam folder) to verify your account and complete the sign-up process."
       );
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Registration error:", error);
-      alert(error.message || "Failed to register");
+      toast.error(error.message || "Failed to register");
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
@@ -90,6 +99,7 @@ export default function SignUpPage() {
                 Date of Birth
               </label>
               <input
+                required
                 id="dob"
                 type="date"
                 value={dob}
@@ -137,18 +147,19 @@ export default function SignUpPage() {
 
           {/* Buttons */}
           <div className="flex flex-col items-center mt-8 gap-4">
-            <button
+            {/* <button
               type="submit"
               className="w-[70%] bg-[#0993EC] hover:bg-[#0882d2] text-white font-semibold py-3 rounded-md text-base transition-all"
             >
               Sign Up
-            </button>
+            </button> */}
+            <Button text="Sign Up" isLoading={isLoading} />
 
             <div className="text-sm text-gray-500">or</div>
 
             <Link
               href="/login"
-              className="w-[70%] text-center border border-[#0993EC] text-[#0993EC] hover:bg-[#0993EC] hover:text-white font-semibold py-3 rounded-md text-base transition-all"
+              className="w-[70%] text-center border border-[#0993EC] text-[#0993EC] hover:bg-[#0993EC] hover:text-white font-semibold py-2 rounded-md text-base transition-all"
             >
               Sign In
             </Link>

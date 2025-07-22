@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import Button from "@/component/Button";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setIsLoading(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
@@ -26,14 +28,18 @@ export default function LoginPage() {
 
       if (!res.ok) {
         toast.error(data.message || "Something went wrong");
+        setIsLoading(false);
         return;
       }
 
       toast.success(data.message || "Login successful!");
+      setIsLoading(false);
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Registration error:", error);
       alert(error.message || "Failed to register");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,9 +98,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button className="w-[70%] bg-[#0993EC] hover:bg-[#0882d2] text-white font-medium py-2 rounded-md text-sm transition-all">
+          {/* <button
+            type="submit"
+            className="w-[70%] bg-[#0993EC] hover:bg-[#0882d2] text-white font-medium py-2 rounded-md text-sm transition-all"
+          >
             Sign In
-          </button>
+          </button> */}
+          <Button text="Sign In" isLoading={isLoading} />
 
           <div className="text-center my-3 text-sm text-gray-500">or</div>
 

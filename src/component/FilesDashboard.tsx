@@ -19,6 +19,7 @@ type FileItem = {
   title: string;
   description: string;
   fileName: string;
+  fileUrl: string;
 };
 
 export default function FilesDashboard() {
@@ -153,14 +154,13 @@ export default function FilesDashboard() {
               setIsOpen={setIsUploadModalOpen}
             />
           </div>
-          {/* <UploadProgressModal filename={"Hanzla.jpg"} progress={70} /> */}
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto bg-white rounded-md shadow mb-4">
           <table className="min-w-full text-sm text-left text-gray-900">
             <thead className="bg-gray-100 border-b">
-              <tr>
+              <tr className="border-b border-gray-200 hover:bg-gray-50">
                 <th className="px-6 py-3 font-medium text-gray-600">Title</th>
                 <th className="px-6 py-3 font-medium text-gray-600">
                   Description
@@ -170,13 +170,23 @@ export default function FilesDashboard() {
             </thead>
             <tbody>
               {filteredFiles.map((f, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
+                <tr
+                  key={i}
+                  className="border-b border-gray-200 hover:bg-gray-50"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">{f.title}</td>
                   <td className="px-6 py-4 whitespace-normal max-w-xs">
                     {f.description}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-blue-600 flex items-center gap-2">
-                    <FaFileAlt className="text-blue-500" /> {f.fileName}
+                    <a
+                      href={f.fileUrl}
+                      download
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <FaFileAlt className="text-blue-500" /> {f.fileName}
+                    </a>
                   </td>
                 </tr>
               ))}
