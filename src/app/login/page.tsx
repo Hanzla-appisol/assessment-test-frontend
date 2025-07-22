@@ -3,13 +3,40 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Something went wrong");
+        return;
+      }
+
+      toast.success(data.message || "Login successful!");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      alert(error.message || "Failed to register");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
-      <div className="text-center">
+      <form onSubmit={handleSubmit} className="text-center">
         <div className="flex justify-center mb-6">
           <Image
             src="/images/logo/logo.jpg"
@@ -75,7 +102,7 @@ export default function LoginPage() {
             Sign Up
           </Link>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
