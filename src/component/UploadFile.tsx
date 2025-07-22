@@ -1,9 +1,11 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { UploadProgressModal } from "./UploadProgressModal";
 interface Props {
   isOpen: boolean;
   setIsOpen: (type: boolean) => void;
@@ -12,6 +14,9 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     onDrop: (acceptedFiles) => setFiles(acceptedFiles),
@@ -33,29 +38,33 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
     formData.append("file", files[0]);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      setShowProgressModal(true);
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/upload`,
+        formData,
+        {
+          withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 1)
+            );
+            setUploadProgress(percent);
+          },
+        }
+      );
 
-      if (!res.ok) {
-        const error = await res.json();
-        toast.error(error.message || "Upload failed.");
-      } else {
-        toast.success("File uploaded successfully!");
-        setIsOpen(false);
-      }
-    } catch (err) {
-      toast.error("Something went wrong!");
+      toast.success("File uploaded successfully!");
+      setIsOpen(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Something went wrong!");
       console.error(err);
     } finally {
       setTitle("");
       setDescription("");
       setFiles([]);
+      setShowProgressModal(false);
+      setUploadProgress(0);
     }
-
-    console.log("Files to upload:", files);
   };
 
   return (
@@ -132,6 +141,12 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
           </div>
         </form>
       </div>
+      {showProgressModal && files.length > 0 && (
+        <UploadProgressModal
+          filename={files[0].name}
+          progress={uploadProgress}
+        />
+      )}
     </div>
   );
 }
