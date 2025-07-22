@@ -10,7 +10,8 @@ interface Props {
 }
 export default function UploadModal({ isOpen, setIsOpen }: Props) {
   const [files, setFiles] = useState<File[]>([]);
-
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     onDrop: (acceptedFiles) => setFiles(acceptedFiles),
@@ -18,15 +19,45 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (files.length === 0) {
       toast.error("Please select a file to upload.");
       return;
     }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("file", files[0]);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error.message || "Upload failed.");
+      } else {
+        toast.success("File uploaded successfully!");
+        setIsOpen(false);
+      }
+    } catch (err) {
+      toast.error("Something went wrong!");
+      console.error(err);
+    } finally {
+      setTitle("");
+      setDescription("");
+      setFiles([]);
+    }
+
     console.log("Files to upload:", files);
-    setIsOpen(false);
   };
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg">
@@ -34,18 +65,20 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
           <h2 className="text-lg font-semibold text-black">Upload Files</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-gray-500 hover:text-red-500 text-xl"
+            className="text-gray-500 hover:text-red-500 text-2xl cursor-pointer"
           >
             &times;
           </button>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Title
             </label>
             <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               type="text"
               className="w-full mt-1 px-3 py-2 border rounded-md text-black text-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter file title"
@@ -57,7 +90,9 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
               Description
             </label>
             <textarea
-              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
               className="w-full mt-1 px-3 py-2 border rounded-md text-sm text-black focus:ring-blue-500 focus:border-blue-500"
               placeholder="Write a short description"
             />
@@ -89,7 +124,6 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
               Cancel
             </button>
             <button
-              onClick={handleSubmit}
               type="submit"
               className="w-[50%] bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-sm"
             >
