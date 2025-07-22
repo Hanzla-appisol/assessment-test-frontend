@@ -14,6 +14,7 @@ export default function SignUpPage() {
     e.preventDefault();
     if (password != confirmPassword) {
       toast.error("Confirm password and password are not same.");
+      return;
     }
     try {
       const res = await fetch(
@@ -136,7 +137,10 @@ export default function SignUpPage() {
 
           {/* Buttons */}
           <div className="flex flex-col items-center mt-8 gap-4">
-            <button type="submit" className="w-[70%] bg-[#0993EC] hover:bg-[#0882d2] text-white font-semibold py-3 rounded-md text-base transition-all">
+            <button
+              type="submit"
+              className="w-[70%] bg-[#0993EC] hover:bg-[#0882d2] text-white font-semibold py-3 rounded-md text-base transition-all"
+            >
               Sign Up
             </button>
 
