@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaCloudUploadAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
 interface Props {
   isOpen: boolean;
   setIsOpen: (type: boolean) => void;
@@ -17,6 +18,15 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
 
   if (!isOpen) return null;
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (files.length === 0) {
+      toast.error("Please select a file to upload.");
+      return;
+    }
+    console.log("Files to upload:", files);
+    setIsOpen(false);
+  };
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg">
@@ -79,6 +89,7 @@ export default function UploadModal({ isOpen, setIsOpen }: Props) {
               Cancel
             </button>
             <button
+              onClick={handleSubmit}
               type="submit"
               className="w-[50%] bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-sm"
             >

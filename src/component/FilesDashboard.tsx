@@ -9,15 +9,23 @@ import {
   FaUserCircle,
   FaFileAlt,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FilterDropdown from "@/component/FilterDropDown";
 import UploadModal from "@/component/UploadFile";
 import { UploadProgressModal } from "@/component/UploadProgressModal";
 import { useRouter } from "next/navigation";
+
+type FileItem = {
+  title: string;
+  description: string;
+  fileName: string;
+};
+
 export default function FilesDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [files, setFiles] = useState<FileItem[]>([]);
   const router = useRouter();
   const handleLogout = async () => {
     await fetch("/api/logout", {
@@ -26,43 +34,60 @@ export default function FilesDashboard() {
 
     router.push("/login");
   };
-  const files = [
-    {
-      title: "Catalog",
-      desc: "Catalogs in digital format",
-      file: "catalog.docx",
-    },
-    { title: "Circoles", desc: "Circles description", file: "circoles.mp4" },
-    {
-      title: "Monthly progress",
-      desc: "Progress report",
-      file: "Monthly progress.png",
-    },
-    { title: "Hourglass", desc: "Time tracking", file: "hourglass.xls" },
-    { title: "Layers", desc: "Layered architecture", file: "layers.docx" },
-    { title: "Quotient", desc: "Math related", file: "quotient.docx" },
-    { title: "Sisyphus", desc: "Metaphorical reference", file: "sis.docx" },
-    { title: "Hourglass", desc: "Another one", file: "hourglass.xls" },
-    { title: "Circoles", desc: "Again", file: "circoles.mp4" },
-  ];
+  //   const files = [
+  //     {
+  //       title: "Catalog",
+  //       desc: "Catalogs in digital format",
+  //       file: "catalog.docx",
+  //     },
+  //     { title: "Circoles", desc: "Circles description", file: "circoles.mp4" },
+  //     {
+  //       title: "Monthly progress",
+  //       desc: "Progress report",
+  //       file: "Monthly progress.png",
+  //     },
+  //     { title: "Hourglass", desc: "Time tracking", file: "hourglass.xls" },
+  //     { title: "Layers", desc: "Layered architecture", file: "layers.docx" },
+  //     { title: "Quotient", desc: "Math related", file: "quotient.docx" },
+  //     { title: "Sisyphus", desc: "Metaphorical reference", file: "sis.docx" },
+  //     { title: "Hourglass", desc: "Another one", file: "hourglass.xls" },
+  //     { title: "Circoles", desc: "Again", file: "circoles.mp4" },
+  //   ];
 
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        console.log(data);
+
+        setFiles(data);
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
   const getFileType = (filename: string) => {
-    const ext = filename.split(".").pop()?.toLowerCase();
+    const ext = filename?.split(".").pop()?.toLowerCase();
     if (!ext) return "unknown";
+
     if (["png", "jpg", "jpeg", "gif", "bmp"].includes(ext)) return "image";
     if (["mp4", "avi", "mov", "mkv"].includes(ext)) return "video";
     if (["doc", "docx", "pdf", "txt"].includes(ext)) return "document";
     if (["xls", "xlsx", "csv"].includes(ext)) return "spreadsheet";
     return "other";
   };
-
   const filteredFiles = files.filter((f) => {
     const matchSearch =
       f.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f.file.toLowerCase().includes(searchTerm.toLowerCase());
+      f.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.fileName.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const type = getFileType(f.file);
+    const type = getFileType(f.fileName);
 
     const matchFilter =
       filterType === "All" ||
@@ -119,7 +144,7 @@ export default function FilesDashboard() {
             />
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="flex items-center gap-2 bg-[#0993EC] text-white px-4 py-2 rounded-md text-sm hover:bg-[#0882d2]"
+              className="flex items-center cursor-pointer gap-2 bg-[#0993EC] text-white px-4 py-2 rounded-md text-sm hover:bg-[#0882d2]"
             >
               <FaUpload /> Upload File
             </button>
@@ -148,23 +173,13 @@ export default function FilesDashboard() {
                 <tr key={i} className="border-b hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">{f.title}</td>
                   <td className="px-6 py-4 whitespace-normal max-w-xs">
-                    {f.desc}
+                    {f.description}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-blue-600 flex items-center gap-2">
-                    <FaFileAlt className="text-blue-500" /> {f.file}
+                    <FaFileAlt className="text-blue-500" /> {f.fileName}
                   </td>
                 </tr>
               ))}
-              {filteredFiles.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No files match your criteria.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
